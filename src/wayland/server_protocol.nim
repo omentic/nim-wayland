@@ -1,4 +1,6 @@
-# import server
+{.push dynlib: "libwlroots.so" .}
+
+import server_core
 
 # FIXME: shim
 type
@@ -26,10 +28,9 @@ type
  WlSubsurface = object
  WlSurface = object
  WlTouch = object
+ WlInterface = object
 
 var
-  WlDisplayInterface*: WlInterface
-  WlRegistryInterface*: WlInterface
   WlCallbackInterface*: WlInterface
   WlCompositorInterface*: WlInterface
   WlShm_poolInterface*: WlInterface
@@ -81,17 +82,17 @@ const
   WL_REGISTRY_GLOBAL_REMOVE_SINCE_VERSION* = 1
   WL_REGISTRY_BIND_SINCE_VERSION* = 1
 
-proc wl_registry_send_global*(resource: ptr WlResource; name: uint32; `interface`: cstring; version: uint32) {.inline, importc: "wl_registry_send_global".} =
+proc sendGlobal*(resource: ptr WlResource; name: uint32; `interface`: cstring; version: uint32) {.inline, importc: "wl_registry_send_global".} =
   postEvent(resource, WL_REGISTRY_GLOBAL, name, `interface`, version)
 
-proc wl_registry_send_global_remove*(resource_: ptr WlResource; name: uint32) {.inline, importc: "wl_registry_send_global_remove".} =
+proc sendGlobalRemove*(resource_: ptr WlResource; name: uint32) {.inline, importc: "wl_registry_send_global_remove".} =
   postEvent(resource_, WL_REGISTRY_GLOBAL_REMOVE, name)
 
 const
   WL_CALLBACK_DONE* = 0
   WL_CALLBACK_DONE_SINCE_VERSION* = 1
 
-proc wl_callback_send_done*(resource_: ptr WlResource; callback_data: uint32) {.inline, importc: "wl_callback_send_done".} =
+proc sendDone*(resource_: ptr WlResource; callback_data: uint32) {.inline, importc: "wl_callback_send_done".} =
   postEvent(resource_, WL_CALLBACK_DONE, callback_data)
 
 type WlCompositorInterface* {.bycopy.} = object
@@ -237,7 +238,7 @@ const
   WL_SHM_FORMAT_SINCE_VERSION* = 1
   WL_SHM_CREATE_POOL_SINCE_VERSION* = 1
 
-proc wl_shm_send_format*(resource_: ptr WlResource; format: uint32) {.inline, importc: "wl_shm_send_format".} =
+proc sendFormat*(resource_: ptr WlResource; format: uint32) {.inline, importc: "wl_shm_send_format".} =
   postEvent(resource_, WL_SHM_FORMAT, format)
 
 type WlBufferInterface* {.bycopy.} = object
@@ -248,7 +249,7 @@ const
   WL_BUFFER_RELEASE_SINCE_VERSION* = 1
   WL_BUFFER_DESTROY_SINCE_VERSION* = 1
 
-proc wl_buffer_send_release*(resource_: ptr WlResource) {.inline, importc: "wl_buffer_send_release".} =
+proc sendRelease*(resource_: ptr WlResource) {.inline, importc: "wl_buffer_send_release".} =
   postEvent(resource_, WL_BUFFER_RELEASE)
 
 type WlDatatOfferError* = enum
@@ -279,13 +280,13 @@ const
   WL_DATA_OFFER_FINISH_SINCE_VERSION* = 3
   WL_DATA_OFFER_SET_ACTIONS_SINCE_VERSION* = 3
 
-proc wl_data_offer_send_offer*(resource_: ptr WlResource; mime_type: cstring) {.inline, importc: "wl_data_offer_send_offer".} =
+proc sendOffer*(resource_: ptr WlResource; mime_type: cstring) {.inline, importc: "wl_data_offer_send_offer".} =
   postEvent(resource_, WL_DATA_OFFER_OFFER, mime_type)
 
-proc wl_data_offer_send_source_actions*(resource_: ptr WlResource; source_actions: uint32) {.inline, importc: "wl_data_offer_send_source_actions".} =
+proc sendSourceActions*(resource_: ptr WlResource; source_actions: uint32) {.inline, importc: "wl_data_offer_send_source_actions".} =
   postEvent(resource_, WL_DATA_OFFER_SOURCE_ACTIONS, source_actions)
 
-proc wl_data_offer_send_action*(resource_: ptr WlResource; dnd_action: uint32) {.inline, importc: "wl_data_offer_send_action".} =
+proc sendAction*(resource_: ptr WlResource; dnd_action: uint32) {.inline, importc: "wl_data_offer_send_action".} =
   postEvent(resource_, WL_DATA_OFFER_ACTION, dnd_action)
 
 type WlDataSourceError* = enum
@@ -316,22 +317,22 @@ const
   WL_DATA_SOURCE_DESTROY_SINCE_VERSION* = 1
   WL_DATA_SOURCE_SET_ACTIONS_SINCE_VERSION* = 3
 
-proc wl_data_source_send_target*(resource_: ptr WlResource; mime_type: cstring) {.inline, importc: "wl_data_source_send_target".} =
+proc sendTarget*(resource_: ptr WlResource; mime_type: cstring) {.inline, importc: "wl_data_source_send_target".} =
   postEvent(resource_, WL_DATA_SOURCE_TARGET, mime_type)
 
-proc wl_data_source_send_send*(resource_: ptr WlResource; mime_type: cstring; fd: int32) {.inline, importc: "wl_data_source_send_send".} =
+proc sendSend*(resource_: ptr WlResource; mime_type: cstring; fd: int32) {.inline, importc: "wl_data_source_send_send".} =
   postEvent(resource_, WL_DATA_SOURCE_SEND, mime_type, fd)
 
-proc wl_data_source_send_cancelled*(resource_: ptr WlResource) {.inline, importc: "wl_data_source_send_cancelled".} =
+proc sendCancelled*(resource_: ptr WlResource) {.inline, importc: "wl_data_source_send_cancelled".} =
   postEvent(resource_, WL_DATA_SOURCE_CANCELLED)
 
-proc wl_data_source_send_dnd_drop_performed*(resource_: ptr WlResource) {.inline, importc: "wl_data_source_send_dnd_drop_performed".} =
+proc sendDndDropPerformed*(resource_: ptr WlResource) {.inline, importc: "wl_data_source_send_dnd_drop_performed".} =
   postEvent(resource_, WL_DATA_SOURCE_DND_DROP_PERFORMED)
 
-proc wl_data_source_send_dnd_finished*(resource_: ptr WlResource) {.inline, importc: "wl_data_source_send_dnd_finished".} =
+proc sendDndFinished*(resource_: ptr WlResource) {.inline, importc: "wl_data_source_send_dnd_finished".} =
   postEvent(resource_, WL_DATA_SOURCE_DND_FINISHED)
 
-proc wl_data_source_send_action*(resource_: ptr WlResource; dnd_action: uint32) {.inline, importc: "wl_data_source_send_action".} =
+proc sendAction*(resource_: ptr WlResource; dnd_action: uint32) {.inline, importc: "wl_data_source_send_action".} =
   postEvent(resource_, WL_DATA_SOURCE_ACTION, dnd_action)
 
 type WlDataDeviceError* = enum
@@ -361,22 +362,22 @@ const
   WL_DATA_DEVICE_SET_SELECTION_SINCE_VERSION* = 1
   WL_DATA_DEVICE_RELEASE_SINCE_VERSION* = 2
 
-proc wl_data_device_send_data_offer*(resource_: ptr WlResource; id: ptr WlResource) {.inline, importc: "wl_data_device_send_data_offer".} =
+proc sendDataOffer*(resource_: ptr WlResource; id: ptr WlResource) {.inline, importc: "wl_data_device_send_data_offer".} =
   postEvent(resource_, WL_DATA_DEVICE_DATA_OFFER, id)
 
-proc wl_data_device_send_enter*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource; x, y: WlFixed; id: ptr WlResource) {.inline, importc: "wl_data_device_send_enter".} =
+proc sendEnter*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource; x, y: WlFixed; id: ptr WlResource) {.inline, importc: "wl_data_device_send_enter".} =
   postEvent(resource_, WL_DATA_DEVICE_ENTER, serial, surface, x, y, id)
 
-proc wl_data_device_send_leave*(resource_: ptr WlResource) {.inline, importc: "wl_data_device_send_leave".} =
+proc sendLeave*(resource_: ptr WlResource) {.inline, importc: "wl_data_device_send_leave".} =
   postEvent(resource_, WL_DATA_DEVICE_LEAVE)
 
-proc wl_data_device_send_motion*(resource_: ptr WlResource; time: uint32; x, y: WlFixed) {.inline, importc: "wl_data_device_send_motion".} =
+proc sendMotion*(resource_: ptr WlResource; time: uint32; x, y: WlFixed) {.inline, importc: "wl_data_device_send_motion".} =
   postEvent(resource_, WL_DATA_DEVICE_MOTION, time, x, y)
 
-proc wl_data_device_send_drop*(resource_: ptr WlResource) {.inline, importc: "wl_data_device_send_drop".} =
+proc sendDrop*(resource_: ptr WlResource) {.inline, importc: "wl_data_device_send_drop".} =
   postEvent(resource_, WL_DATA_DEVICE_DROP)
 
-proc wl_data_device_send_selection*(resource_: ptr WlResource; id: ptr WlResource) {.inline, importc: "wl_data_device_send_selection".} =
+proc sendSelection*(resource_: ptr WlResource; id: ptr WlResource) {.inline, importc: "wl_data_device_send_selection".} =
   postEvent(resource_, WL_DATA_DEVICE_SELECTION, id)
 
 type WlDataDeviceManagerDndAction* = enum
@@ -455,13 +456,13 @@ const
   WL_SHELL_SURFACE_SET_TITLE_SINCE_VERSION* = 1
   WL_SHELL_SURFACE_SET_CLASS_SINCE_VERSION* = 1
 
-proc wl_shell_surface_send_ping*(resource_: ptr WlResource; serial: uint32) {.inline, importc: "wl_shell_surface_send_ping".} =
+proc sendPing*(resource_: ptr WlResource; serial: uint32) {.inline, importc: "wl_shell_surface_send_ping".} =
   postEvent(resource_, WL_SHELL_SURFACE_PING, serial)
 
-proc wl_shell_surface_send_configure*(resource_: ptr WlResource; edges: uint32; width, height: int32) {.inline, importc: "wl_shell_surface_send_configure".} =
+proc sendConfigure*(resource_: ptr WlResource; edges: uint32; width, height: int32) {.inline, importc: "wl_shell_surface_send_configure".} =
   postEvent(resource_, WL_SHELL_SURFACE_CONFIGURE, edges, width, height)
 
-proc wl_shell_surface_send_popup_done*(resource_: ptr WlResource) {.inline, importc: "wl_shell_surface_send_popup_done".} =
+proc sendPopup_done*(resource_: ptr WlResource) {.inline, importc: "wl_shell_surface_send_popup_done".} =
   postEvent(resource_, WL_SHELL_SURFACE_POPUP_DONE)
 
 type WlSurfaceError* = enum
@@ -502,10 +503,10 @@ const
   WL_SURFACE_DAMAGE_BUFFER_SINCE_VERSION* = 4
   WL_SURFACE_OFFSET_SINCE_VERSION* = 5
 
-proc wl_surface_send_enter*(resource_: ptr WlResource; output: ptr WlResource) {.inline, importc: "wl_surface_send_enter".} =
+proc sendEnter*(resource_: ptr WlResource; output: ptr WlResource) {.inline, importc: "wl_surface_send_enter".} =
   postEvent(resource_, WL_SURFACE_ENTER, output)
 
-proc wl_surface_send_leave*(resource_: ptr WlResource; output: ptr WlResource) {.inline, importc: "wl_surface_send_leave".} =
+proc sendLeave*(resource_: ptr WlResource; output: ptr WlResource) {.inline, importc: "wl_surface_send_leave".} =
   postEvent(resource_, WL_SURFACE_LEAVE, output)
 
 type WlSeatCapability* = enum
@@ -534,10 +535,10 @@ const
   WL_SEAT_GET_TOUCH_SINCE_VERSION* = 1
   WL_SEAT_RELEASE_SINCE_VERSION* = 5
 
-proc wl_seat_send_capabilities*(resource_: ptr WlResource; capabilities: uint32) {.inline, importc: "wl_seat_send_capabilities".} =
+proc sendCapabilities*(resource_: ptr WlResource; capabilities: uint32) {.inline, importc: "wl_seat_send_capabilities".} =
   postEvent(resource_, WL_SEAT_CAPABILITIES, capabilities)
 
-proc wl_seat_send_name*(resource_: ptr WlResource; name: cstring) {.inline, importc: "wl_seat_send_name".} =
+proc sendName*(resource_: ptr WlResource; name: cstring) {.inline, importc: "wl_seat_send_name".} =
   postEvent(resource_, WL_SEAT_NAME, name)
 
 type WlPointerError* = enum
@@ -587,31 +588,31 @@ const
   WL_POINTER_SET_CURSOR_SINCE_VERSION* = 1
   WL_POINTER_RELEASE_SINCE_VERSION* = 3
 
-proc wl_pointer_send_enter*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource; surface_x, surface_y: WlFixed) {.inline, importc: "wl_pointer_send_enter".} =
+proc sendEnter*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource; surface_x, surface_y: WlFixed) {.inline, importc: "wl_pointer_send_enter".} =
   postEvent(resource_, WL_POINTER_ENTER, serial, surface, surface_x, surface_y)
 
-proc wl_pointer_send_leave*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource) {.inline, importc: "wl_pointer_send_leave".} =
+proc sendLeave*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource) {.inline, importc: "wl_pointer_send_leave".} =
   postEvent(resource_, WL_POINTER_LEAVE, serial, surface)
 
-proc wl_pointer_send_motion*(resource_: ptr WlResource; time: uint32; surface_x, surface_y: WlFixed) {.inline, importc: "wl_pointer_send_motion".} =
+proc sendMotion*(resource_: ptr WlResource; time: uint32; surface_x, surface_y: WlFixed) {.inline, importc: "wl_pointer_send_motion".} =
   postEvent(resource_, WL_POINTER_MOTION, time, surface_x, surface_y)
 
-proc wl_pointer_send_button*(resource_: ptr WlResource; serial: uint32; time: uint32; button: uint32; state: uint32) {.inline, importc: "wl_pointer_send_button".} =
+proc sendButton*(resource_: ptr WlResource; serial: uint32; time: uint32; button: uint32; state: uint32) {.inline, importc: "wl_pointer_send_button".} =
   postEvent(resource_, WL_POINTER_BUTTON, serial, time, button, state)
 
-proc wl_pointer_send_axis*(resource_: ptr WlResource; time: uint32; axis: uint32; value: WlFixed) {.inline, importc: "wl_pointer_send_axis".} =
+proc sendAxis*(resource_: ptr WlResource; time: uint32; axis: uint32; value: WlFixed) {.inline, importc: "wl_pointer_send_axis".} =
   postEvent(resource_, WL_POINTER_AXIS, time, axis, value)
 
-proc wl_pointer_send_frame*(resource_: ptr WlResource) {.inline, importc: "wl_pointer_send_frame".} =
+proc sendFrame*(resource_: ptr WlResource) {.inline, importc: "wl_pointer_send_frame".} =
   postEvent(resource_, WL_POINTER_FRAME)
 
-proc wl_pointer_send_axis_source*(resource_: ptr WlResource; axis_source: uint32) {.inline, importc: "wl_pointer_send_axis_source".} =
+proc sendAxisSource*(resource_: ptr WlResource; axis_source: uint32) {.inline, importc: "wl_pointer_send_axis_source".} =
   postEvent(resource_, WL_POINTER_AXIS_SOURCE, axis_source)
 
-proc wl_pointer_send_axis_stop*(resource_: ptr WlResource; time: uint32; axis: uint32) {.inline, importc: "wl_pointer_send_axis_stop".} =
+proc sendAxisStop*(resource_: ptr WlResource; time: uint32; axis: uint32) {.inline, importc: "wl_pointer_send_axis_stop".} =
   postEvent(resource_, WL_POINTER_AXIS_STOP, time, axis)
 
-proc wl_pointer_send_axis_discrete*(resource_: ptr WlResource; axis: uint32; discrete: int32) {.inline, importc: "wl_pointer_send_axis_discrete".} =
+proc sendAxisDiscrete*(resource_: ptr WlResource; axis: uint32; discrete: int32) {.inline, importc: "wl_pointer_send_axis_discrete".} =
   postEvent(resource_, WL_POINTER_AXIS_DISCRETE, axis, discrete)
 
 type WlKeyboardKeymapFormat* = enum
@@ -642,22 +643,22 @@ const
   WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION* = 4
   WL_KEYBOARD_RELEASE_SINCE_VERSION* = 3
 
-proc wl_keyboard_send_keymap*(resource_: ptr WlResource; format: uint32; fd: int32; size: uint32) {.inline, importc: "wl_keyboard_send_keymap".} =
+proc sendKeymap*(resource_: ptr WlResource; format: uint32; fd: int32; size: uint32) {.inline, importc: "wl_keyboard_send_keymap".} =
   postEvent(resource_, WL_KEYBOARD_KEYMAP, format, fd, size)
 
-proc wl_keyboard_send_enter*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource; keys: ptr wl_array) {.inline, importc: "wl_keyboard_send_enter".} =
+proc sendEnter*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource; keys: ptr WlArray) {.inline, importc: "wl_keyboard_send_enter".} =
   postEvent(resource_, WL_KEYBOARD_ENTER, serial, surface, keys)
 
-proc wl_keyboard_send_leave*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource) {.inline, importc: "wl_keyboard_send_leave".} =
+proc sendLeave*(resource_: ptr WlResource; serial: uint32; surface: ptr WlResource) {.inline, importc: "wl_keyboard_send_leave".} =
   postEvent(resource_, WL_KEYBOARD_LEAVE, serial, surface)
 
-proc wl_keyboard_send_key*(resource_: ptr WlResource; serial: uint32; time: uint32; key: uint32; state: uint32) {.inline, importc: "wl_keyboard_send_key".} =
+proc sendKey*(resource_: ptr WlResource; serial: uint32; time: uint32; key: uint32; state: uint32) {.inline, importc: "wl_keyboard_send_key".} =
   postEvent(resource_, WL_KEYBOARD_KEY, serial, time, key, state)
 
-proc wl_keyboard_send_modifiers*(resource_: ptr WlResource; serial: uint32; mods_depressed: uint32; mods_latched: uint32; mods_locked: uint32; group: uint32) {.inline, importc: "wl_keyboard_send_modifiers".} =
+proc sendModifiers*(resource_: ptr WlResource; serial: uint32; mods_depressed: uint32; mods_latched: uint32; mods_locked: uint32; group: uint32) {.inline, importc: "wl_keyboard_send_modifiers".} =
   postEvent(resource_, WL_KEYBOARD_MODIFIERS, serial, mods_depressed, mods_latched, mods_locked, group)
 
-proc wl_keyboard_send_repeat_info*(resource_: ptr WlResource; rate: int32; delay: int32) {.inline, importc: "wl_keyboard_send_repeat_info".} =
+proc sendRepeatInfo*(resource_: ptr WlResource; rate: int32; delay: int32) {.inline, importc: "wl_keyboard_send_repeat_info".} =
   postEvent(resource_, WL_KEYBOARD_REPEAT_INFO, rate, delay)
 
 type WlTouchInterface* {.bycopy.} = object
@@ -682,25 +683,25 @@ const
   WL_TOUCH_ORIENTATION_SINCE_VERSION* = 6
   WL_TOUCH_RELEASE_SINCE_VERSION* = 3
 
-proc wl_touch_send_down*(resource_: ptr WlResource; serial: uint32; time: uint32; surface: ptr WlResource; id: int32; x, y: WlFixed) {.inline, importc: "wl_touch_send_down".} =
+proc sendDown*(resource_: ptr WlResource; serial: uint32; time: uint32; surface: ptr WlResource; id: int32; x, y: WlFixed) {.inline, importc: "wl_touch_send_down".} =
   postEvent(resource_, WL_TOUCH_DOWN, serial, time, surface, id, x, y)
 
-proc wl_touch_send_up*(resource_: ptr WlResource; serial: uint32; time: uint32; id: int32) {.inline, importc: "wl_touch_send_up".} =
+proc sendUp*(resource_: ptr WlResource; serial: uint32; time: uint32; id: int32) {.inline, importc: "wl_touch_send_up".} =
   postEvent(resource_, WL_TOUCH_UP, serial, time, id)
 
-proc wl_touch_send_motion*(resource_: ptr WlResource; time: uint32; id: int32; x, y: WlFixed) {.inline, importc: "wl_touch_send_motion".} =
+proc sendMotion*(resource_: ptr WlResource; time: uint32; id: int32; x, y: WlFixed) {.inline, importc: "wl_touch_send_motion".} =
   postEvent(resource_, WL_TOUCH_MOTION, time, id, x, y)
 
-proc wl_touch_send_frame*(resource_: ptr WlResource) {.inline, importc: "wl_touch_send_frame".} =
+proc sendFrame*(resource_: ptr WlResource) {.inline, importc: "wl_touch_send_frame".} =
   postEvent(resource_, WL_TOUCH_FRAME)
 
-proc wl_touch_send_cancel*(resource_: ptr WlResource) {.inline, importc: "wl_touch_send_cancel".} =
+proc sendCancel*(resource_: ptr WlResource) {.inline, importc: "wl_touch_send_cancel".} =
   postEvent(resource_, WL_TOUCH_CANCEL)
 
-proc wl_touch_send_shape*(resource_: ptr WlResource; id: int32; major: WlFixed; minor: WlFixed) {.inline, importc: "wl_touch_send_shape".} =
+proc sendShape*(resource_: ptr WlResource; id: int32; major: WlFixed; minor: WlFixed) {.inline, importc: "wl_touch_send_shape".} =
   postEvent(resource_, WL_TOUCH_SHAPE, id, major, minor)
 
-proc wl_touch_send_orientation*(resource_: ptr WlResource; id: int32; orientation: WlFixed) {.inline, importc: "wl_touch_send_orientation".} =
+proc sendOrientation*(resource_: ptr WlResource; id: int32; orientation: WlFixed) {.inline, importc: "wl_touch_send_orientation".} =
   postEvent(resource_, WL_TOUCH_ORIENTATION, id, orientation)
 
 type WlOutputSubpixel* = enum
@@ -745,22 +746,22 @@ const
   WL_OUTPUT_DESCRIPTION_SINCE_VERSION* = 4
   WL_OUTPUT_RELEASE_SINCE_VERSION* = 3
 
-proc wl_output_send_geometry*(resource_: ptr WlResource; x, y: int32; physical_width, physical_height: int32; subpixel: int32; make: cstring; model: cstring; transform: int32) {.inline, importc: "wl_output_send_geometry".} =
+proc sendGeometry*(resource_: ptr WlResource; x, y: int32; physical_width, physical_height: int32; subpixel: int32; make: cstring; model: cstring; transform: int32) {.inline, importc: "wl_output_send_geometry".} =
   postEvent(resource_, WL_OUTPUT_GEOMETRY, x, y, physical_width, physical_height, subpixel, make, model, transform)
 
-proc wl_output_send_mode*(resource_: ptr WlResource; flags: uint32; width, height: int32; refresh: int32) {.inline, importc: "wl_output_send_mode".} =
+proc sendMode*(resource_: ptr WlResource; flags: uint32; width, height: int32; refresh: int32) {.inline, importc: "wl_output_send_mode".} =
   postEvent(resource_, WL_OUTPUT_MODE, flags, width, height, refresh)
 
-proc wl_output_send_done*(resource_: ptr WlResource) {.inline, importc: "wl_output_send_done".} =
+proc sendDone*(resource_: ptr WlResource) {.inline, importc: "wl_output_send_done".} =
   postEvent(resource_, WL_OUTPUT_DONE)
 
-proc wl_output_send_scale*(resource_: ptr WlResource; factor: int32) {.inline, importc: "wl_output_send_scale".} =
+proc sendScale*(resource_: ptr WlResource; factor: int32) {.inline, importc: "wl_output_send_scale".} =
   postEvent(resource_, WL_OUTPUT_SCALE, factor)
 
-proc wl_output_send_name*(resource_: ptr WlResource; name: cstring) {.inline, importc: "wl_output_send_name".} =
+proc sendName*(resource_: ptr WlResource; name: cstring) {.inline, importc: "wl_output_send_name".} =
   postEvent(resource_, WL_OUTPUT_NAME, name)
 
-proc wl_output_send_description*(resource_: ptr WlResource; description: cstring) {.inline, importc: "wl_output_send_description".} =
+proc sendDescription*(resource_: ptr WlResource; description: cstring) {.inline, importc: "wl_output_send_description".} =
   postEvent(resource_, WL_OUTPUT_DESCRIPTION, description)
 
 type WlRegionInterface* {.bycopy.} = object
@@ -802,3 +803,5 @@ const
   WL_SUBSURFACE_PLACE_BELOW_SINCE_VERSION* = 1
   WL_SUBSURFACE_SET_SYNC_SINCE_VERSION* = 1
   WL_SUBSURFACE_SET_DESYNC_SINCE_VERSION* = 1
+
+{.pop.}

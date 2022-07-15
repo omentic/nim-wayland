@@ -1,18 +1,5 @@
 {.push dynlib: "libwlroots.so" .}
 
-when defined(__GNUC__) and __GNUC__ >= 4:
-  discard
-else:
-  const
-    __attribute__* = ((visibility("default")))
-
-when defined(__GNUC__) and __GNUC__ >= 4:
-  discard
-else:
-  const
-    __attribute__* = ((deprecated))
-discard "forward decl of wl_object"
-
 type WlMessage* {.bycopy.} = object
   name*: cstring
   signature*: cstring
@@ -76,7 +63,7 @@ proc wl_fixed_from_double*(d: cdouble): WlFixed {.inline.} {.importc: "wl_fixed_
 proc toInt*(f: WlFixed): cint {.inline.} = {.importc: "wl_fixed_to_int".}
   return f div 256
 
-proc wl_fixed_from_int*(i: cint): WlFixed {.inline.} = {.importc: "wl_fixed_from_int".}
+proc getWlFixed*(i: cint): WlFixed {.inline.} = {.importc: "wl_fixed_from_int".}
   return i * 256
 
 type
@@ -85,14 +72,14 @@ type
     u*: uint32
     f*: WlFixed
     s*: cstring
-    o*: ptr wl_object
+    o*: ptr WlObject
     n*: uint32
     a*: ptr WlArray
     h*: int32
 
-type wl_dispatcher_func_t* = proc (a1: pointer; a2: pointer; a3: uint32_t; a4: ptr wl_message; a5: ptr wl_argument): cint
+type WlDispatcherFunc* = proc (a1: pointer; a2: pointer; a3: uint32; a4: ptr WlMessage; a5: ptr WlArgument): cint
 
-type wl_iterator_result* = enum
+type WlIteratorResult* = enum
     WL_ITERATOR_STOP,
     WL_ITERATOR_CONTINUE
 
