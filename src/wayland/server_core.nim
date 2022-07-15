@@ -147,19 +147,17 @@ proc initShm*(display: ptr WlDisplay): cint {.importc: "wl_display_init_shm".}
 proc addShmFormat*(display: ptr WlDisplay; format: uint32): ptr uint32 {.importc: "wl_display_add_shm_format".}
 proc setHandlerServer*(handler: WlLogFunc) {.importc: "wl_log_set_handler_server".}
 
-type
-  WlProtocolLoggerType* = enum
-    WL_PROTOCOL_LOGGER_REQUEST, WL_PROTOCOL_LOGGER_EVENT
+type WlProtocolLoggerType* {.pure.} = enum
+  REQUEST, EVENT
 
-type
-  WlProtocolLoggerMessage* {.bycopy.} = object
-    resource*: ptr WlResource
-    message_opcode*: cint
-    message*: ptr WlMessage
-    arguments_count*: cint
-    arguments*: ptr WlArgument
+type WlProtocolLoggerMessage* {.bycopy.} = object
+  resource*: ptr WlResource
+  message_opcode*: cint
+  message*: ptr WlMessage
+  arguments_count*: cint
+  arguments*: ptr WlArgument
 
-  WlProtocolLoggerFunc* = proc (user_data: pointer; direction: WlProtocolLoggerType; message: ptr WlProtocolLoggerMessage)
+type WlProtocolLoggerFunc* = proc (user_data: pointer; direction: WlProtocolLoggerType; message: ptr WlProtocolLoggerMessage)
 
 proc addProtocolLogger*(display: ptr WlDisplay; a2: WlProtocolLoggerFunc; user_data: pointer): ptr WlProtocolLogger {.importc: "wl_display_add_protocol_logger".}
 proc destroy*(logger: ptr WlProtocolLogger) {.importc: "wl_protocol_logger_destroy".}

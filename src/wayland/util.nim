@@ -79,8 +79,8 @@ type
 
 type WlDispatcherFunc* = proc (a1: pointer; a2: pointer; a3: uint32; a4: ptr WlMessage; a5: ptr WlArgument): cint
 
-type WlIteratorResult* = enum
-    WL_ITERATOR_STOP,
-    WL_ITERATOR_CONTINUE
+type WlIteratorResult* {.pure.} = enum
+  STOP,
+  CONTINUE
 
 {.pop.}
