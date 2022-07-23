@@ -31,7 +31,7 @@ const WL_EGL_WINDOW_VERSION* = 3
 type WlSurface = object
 
 type WlEglWindow* {.bycopy.} = object
-  version*: intptr_t
+  version*: int64
   width*: cint
   height*: cint
   dx*: cint

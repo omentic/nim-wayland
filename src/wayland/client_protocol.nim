@@ -1,6 +1,6 @@
 {.push dynlib: "libwlroots.so" .}
 
-import client_core
+import client_core, util
 
 # FIXME: shim
 type
@@ -62,7 +62,7 @@ type WlDisplayListener* {.bycopy.} = object
   delete_id*: proc (data: pointer; wl_display: ptr WlDisplay; id: uint32)
 
 proc addListener*(wl_display: ptr WlDisplay; listener: ptr WlDisplayListener; data: pointer): cint {.inline, importc: "wl_display_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_display), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_display), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_DISPLAY_SYNC* = 0
@@ -85,12 +85,12 @@ proc getVersion*(wl_display: ptr WlDisplay): uint32 {.inline, importc: "wl_displ
 
 proc sync*(wl_display: ptr WlDisplay): ptr WlCallback {.inline, importc: "wl_display_sync".} =
   var callback: ptr WlProxy
-  callback = marshal_flags(cast[ptr WlProxy](wl_display), WL_DISPLAY_SYNC, addr(wl_callback_interface), get_version(cast[ptr WlProxy](wl_display)), 0, nil)
+  callback = marshal_flags(cast[ptr WlProxy](wl_display), WL_DISPLAY_SYNC, addr(WlCallbackInterface), get_version(cast[ptr WlProxy](wl_display)), 0, nil)
   return cast[ptr WlCallback](callback)
 
 proc getRegistry*(wl_display: ptr WlDisplay): ptr WlRegistry {.inline, importc: "wl_display_get_registry".} =
   var registry: ptr WlProxy
-  registry = marshal_flags(cast[ptr WlProxy](wl_display), WL_DISPLAY_GET_REGISTRY, addr(wl_registry_interface), get_version(cast[ptr WlProxy](wl_display)), 0, nil)
+  registry = marshal_flags(cast[ptr WlProxy](wl_display), WL_DISPLAY_GET_REGISTRY, addr(WlRegistryInterface), get_version(cast[ptr WlProxy](wl_display)), 0, nil)
   return cast[ptr WlRegistry](registry)
 
 type WlRegistryListener* {.bycopy.} = object
@@ -98,7 +98,7 @@ type WlRegistryListener* {.bycopy.} = object
   global_remove*: proc (data: pointer; wl_registry: ptr WlRegistry; name: uint32)
 
 proc addListener*(wl_registry: ptr WlRegistry; listener: ptr WlRegistry_listener; data: pointer): cint {.inline, importc: "wl_registry_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_registry), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_registry), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_REGISTRY_BIND* = 0
@@ -118,7 +118,7 @@ proc getVersion*(wl_registry: ptr WlRegistry): uint32 {.inline, importc: "wl_reg
 proc destroy*(wl_registry: ptr WlRegistry) {.inline, importc: "wl_registry_destroy".} =
   destroy(cast[ptr WlProxy](wl_registry))
 
-proc bind*(wl_registry: ptr WlRegistry; name: uint32; `interface`: ptr WlInterface; version: uint32): pointer {.inline, importc: "wl_registry_bind".} =
+proc `bind`*(wl_registry: ptr WlRegistry; name: uint32; `interface`: ptr WlInterface; version: uint32): pointer {.inline, importc: "wl_registry_bind".} =
   var id: ptr WlProxy
   id = marshal_flags(cast[ptr WlProxy](wl_registry), WL_REGISTRY_BIND, `interface`, version, 0, name, `interface`.name, version, nil)
   return cast[pointer](id)
@@ -127,7 +127,7 @@ type WlCallbackListener* {.bycopy.} = object
   done*: proc (data: pointer; wl_callback: ptr WlCallback; callback_data: uint32)
 
 proc addListener*(wl_callback: ptr WlCallback; listener: ptr WlCallback_listener; data: pointer): cint {.inline, importc: "wl_callback_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_callback), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_callback), cast[proc (){.cdecl.}](listener), data)
 
 const WL_CALLBACK_DONE_SINCE_VERSION* = 1
 
@@ -165,12 +165,12 @@ proc destroy*(wl_compositor: ptr WlCompositor) {.inline, importc: "wl_compositor
 
 proc createSurface*(wl_compositor: ptr WlCompositor): ptr WlSurface {.inline, importc: "wl_compositor_create_surface".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_compositor), WL_COMPOSITOR_CREATE_SURFACE, addr(wl_surface_interface), get_version(cast[ptr WlProxy](wl_compositor)), 0, nil)
+  id = marshal_flags(cast[ptr WlProxy](wl_compositor), WL_COMPOSITOR_CREATE_SURFACE, addr(WlSurfaceInterface), get_version(cast[ptr WlProxy](wl_compositor)), 0, nil)
   return cast[ptr WlSurface](id)
 
 proc createRegion*(wl_compositor: ptr WlCompositor): ptr WlRegion {.inline, importc: "wl_compositor_create_region".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_compositor), WL_COMPOSITOR_CREATE_REGION, addr(wl_region_interface), get_version(cast[ptr WlProxy](wl_compositor)), 0, nil)
+  id = marshal_flags(cast[ptr WlProxy](wl_compositor), WL_COMPOSITOR_CREATE_REGION, addr(WlRegionInterface), get_version(cast[ptr WlProxy](wl_compositor)), 0, nil)
   return cast[ptr WlRegion](id)
 
 const
@@ -194,14 +194,14 @@ proc getVersion*(wl_shm_pool: ptr WlShmPool): uint32 {.inline, importc: "wl_shm_
 
 proc createBuffer*(wl_shm_pool: ptr WlShmPool; offset: int32; width, height: int32; stride: int32; format: uint32): ptr WlBuffer {.inline, importc: "wl_shm_pool_create_buffer".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_shm_pool), WL_SHM_POOL_CREATE_BUFFER, addr(wl_buffer_interface), get_version(cast[ptr WlProxy](wl_shm_pool)), 0, nil, offset, width, height, stride, format)
+  id = marshal_flags(cast[ptr WlProxy](wl_shm_pool), WL_SHM_POOL_CREATE_BUFFER, addr(WlBufferInterface), get_version(cast[ptr WlProxy](wl_shm_pool)), 0, nil, offset, width, height, stride, format)
   return cast[ptr WlBuffer](id)
 
 proc destroy*(wl_shm_pool: ptr WlShmPool) {.inline, importc: "wl_shm_pool_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_shm_pool), WL_SHM_POOL_DESTROY, nil, get_version(cast[ptr WlProxy](wl_shm_pool)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_shm_pool), WL_SHM_POOL_DESTROY, nil, get_version(cast[ptr WlProxy](wl_shm_pool)), WL_MARSHAL_FLAG_DESTROY)
 
 proc resize*(wl_shm_pool: ptr WlShmPool; size: int32) {.inline, importc: "wl_shm_pool_resize".} =
-  marshal_flags(cast[ptr WlProxy](wl_shm_pool), WL_SHM_POOL_RESIZE, nil, get_version(cast[ptr WlProxy](wl_shm_pool)), 0, size)
+  discard marshal_flags(cast[ptr WlProxy](wl_shm_pool), WL_SHM_POOL_RESIZE, nil, get_version(cast[ptr WlProxy](wl_shm_pool)), 0, size)
 
 type WlShmError* {.pure.} = enum
   INVALID_FORMAT = 0,
@@ -322,7 +322,7 @@ type WlShmListener* {.bycopy.} = object
   format*: proc (data: pointer; wl_shm: ptr WlShm; format: uint32)
 
 proc addListener*(wl_shm: ptr WlShm; listener: ptr WlShmListener; data: pointer): cint {.inline, importc: "wl_shm_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_shm), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_shm), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_SHM_CREATE_POOL* = 0
@@ -343,14 +343,14 @@ proc destroy*(wl_shm: ptr WlShm) {.inline, importc: "wl_shm_destroy".} =
 
 proc createPool*(wl_shm: ptr WlShm; fd: int32; size: int32): ptr WlShmPool {.inline, importc: "wl_shm_create_pool".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_shm), WL_SHM_CREATE_POOL, addr(wl_shm_pool_interface), get_version(cast[ptr WlProxy](wl_shm)), 0, nil, fd, size)
+  id = marshal_flags(cast[ptr WlProxy](wl_shm), WL_SHM_CREATE_POOL, addr(WlShmPoolInterface), get_version(cast[ptr WlProxy](wl_shm)), 0, nil, fd, size)
   return cast[ptr WlShmPool](id)
 
 type WlBufferListener* {.bycopy.} = object
   release*: proc (data: pointer; wl_buffer: ptr WlBuffer)
 
 proc addListener*(wl_buffer: ptr WlBuffer; listener: ptr WlBufferListener; data: pointer): cint {.inline, importc: "wl_buffer_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_buffer), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_buffer), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_BUFFER_DESTROY* = 0
@@ -367,7 +367,7 @@ proc getVersion*(wl_buffer: ptr WlBuffer): uint32 {.inline, importc: "wl_buffer_
   return get_version(cast[ptr WlProxy](wl_buffer))
 
 proc destroy*(wl_buffer: ptr WlBuffer) {.inline, importc: "wl_buffer_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_buffer), WL_BUFFER_DESTROY, nil, get_version(cast[ptr WlProxy](wl_buffer)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_buffer), WL_BUFFER_DESTROY, nil, get_version(cast[ptr WlProxy](wl_buffer)), WL_MARSHAL_FLAG_DESTROY)
 
 type WlDataOfferError* {.pure.} = enum
   INVALID_FINISH = 0,
@@ -381,7 +381,7 @@ type WlDataOfferListener* {.bycopy.} = object
   action*: proc (data: pointer; wl_data_offer: ptr WlDataOffer; dnd_action: uint32)
 
 proc addListener*(wl_data_offer: ptr WlDataOffer; listener: ptr WlDataOffer_listener; data: pointer): cint {.inline, importc: "wl_data_offer_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_data_offer), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_data_offer), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_DATA_OFFER_ACCEPT* = 0
@@ -410,23 +410,23 @@ proc getVersion*(wl_data_offer: ptr WlDataOffer): uint32 {.inline, importc: "wl_
   return get_version(cast[ptr WlProxy](wl_data_offer))
 
 proc accept*(wl_data_offer: ptr WlDataOffer; serial: uint32; mime_type: cstring) {.inline, importc: "wl_data_offer_accept".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_ACCEPT, nil, get_version(
+  discard marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_ACCEPT, nil, get_version(
       cast[ptr WlProxy](wl_data_offer)), 0, serial, mime_type)
 
 proc receive*(wl_data_offer: ptr WlDataOffer; mime_type: cstring; fd: int32) {.inline, importc: "wl_data_offer_receive".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_RECEIVE, nil, get_version(
+  discard marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_RECEIVE, nil, get_version(
       cast[ptr WlProxy](wl_data_offer)), 0, mime_type, fd)
 
 proc destroy*(wl_data_offer: ptr WlDataOffer) {.inline, importc: "wl_data_offer_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_DESTROY, nil, get_version(
+  discard marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_DESTROY, nil, get_version(
       cast[ptr WlProxy](wl_data_offer)), WL_MARSHAL_FLAG_DESTROY)
 
 proc finish*(wl_data_offer: ptr WlDataOffer) {.inline, importc: "wl_data_offer_finish".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_FINISH, nil, get_version(
+  discard marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_FINISH, nil, get_version(
       cast[ptr WlProxy](wl_data_offer)), 0)
 
 proc setActions*(wl_data_offer: ptr WlDataOffer; dnd_actions: uint32; preferred_action: uint32) {.inline, importc: "wl_data_offer_set_actions".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_SET_ACTIONS, nil, get_version(
+  discard marshal_flags(cast[ptr WlProxy](wl_data_offer), WL_DATA_OFFER_SET_ACTIONS, nil, get_version(
       cast[ptr WlProxy](wl_data_offer)), 0, dnd_actions, preferred_action)
 
 type WlDataSourceError* {.pure.} = enum
@@ -442,7 +442,7 @@ type WlDataSourceListener* {.bycopy.} = object
   action*: proc (data: pointer; wl_data_source: ptr WlDataSource; dnd_action: uint32)
 
 proc addListener*(wl_data_source: ptr WlDataSource; listener: ptr WlDataSourceListener; data: pointer): cint {.inline, importc: "wl_data_source_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_data_source), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_data_source), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_DATA_SOURCE_OFFER* = 0
@@ -470,13 +470,13 @@ proc getVersion*(wl_data_source: ptr WlDataSource): uint32 {.inline, importc: "w
   return get_version(cast[ptr WlProxy](wl_data_source))
 
 proc offer*(wl_data_source: ptr WlDataSource; mime_type: cstring) {.inline, importc: "wl_data_source_offer".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_source), WL_DATA_SOURCE_OFFER, nil, get_version(cast[ptr WlProxy](wl_data_source)), 0, mime_type)
+  discard marshal_flags(cast[ptr WlProxy](wl_data_source), WL_DATA_SOURCE_OFFER, nil, get_version(cast[ptr WlProxy](wl_data_source)), 0, mime_type)
 
 proc destroy*(wl_data_source: ptr WlDataSource) {.inline, importc: "wl_data_source_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_source), WL_DATA_SOURCE_DESTROY, nil, get_version(cast[ptr WlProxy](wl_data_source)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_data_source), WL_DATA_SOURCE_DESTROY, nil, get_version(cast[ptr WlProxy](wl_data_source)), WL_MARSHAL_FLAG_DESTROY)
 
 proc setActions*(wl_data_source: ptr WlDataSource; dnd_actions: uint32) {.inline, importc: "wl_data_source_set_actions".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_source), WL_DATA_SOURCE_SET_ACTIONS, nil, get_version(cast[ptr WlProxy](wl_data_source)), 0, dnd_actions)
+  discard marshal_flags(cast[ptr WlProxy](wl_data_source), WL_DATA_SOURCE_SET_ACTIONS, nil, get_version(cast[ptr WlProxy](wl_data_source)), 0, dnd_actions)
 
 type WlDataDeviceError* {.pure.} = enum
   ROLE = 0
@@ -490,7 +490,7 @@ type WlDataDeviceListener* {.bycopy.} = object
   selection*: proc (data: pointer; wl_data_device: ptr WlDataDevice; id: ptr WlDataOffer)
 
 proc addListener*(wl_data_device: ptr WlDataDevice; listener: ptr WlDataDeviceListener; data: pointer): cint {.inline, importc: "wl_data_device_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_data_device), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_data_device), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_DATA_DEVICE_START_DRAG* = 0
@@ -521,13 +521,13 @@ proc destroy*(wl_data_device: ptr WlDataDevice) {.inline, importc: "wl_data_devi
   destroy(cast[ptr WlProxy](wl_data_device))
 
 proc startDrag*(wl_data_device: ptr WlDataDevice; source: ptr WlDataSource; origin: ptr WlSurface; icon: ptr WlSurface; serial: uint32) {.inline, importc: "wl_data_device_start_drag".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_device), WL_DATA_DEVICE_START_DRAG, nil, get_version(cast[ptr WlProxy](wl_data_device)), 0, source, origin, icon, serial)
+  discard marshal_flags(cast[ptr WlProxy](wl_data_device), WL_DATA_DEVICE_START_DRAG, nil, get_version(cast[ptr WlProxy](wl_data_device)), 0, source, origin, icon, serial)
 
 proc setSelection*(wl_data_device: ptr WlDataDevice; source: ptr WlDataSource; serial: uint32) {.inline, importc: "wl_data_device_set_selection".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_device), WL_DATA_DEVICE_SET_SELECTION, nil, get_version(cast[ptr WlProxy](wl_data_device)), 0, source, serial)
+  discard marshal_flags(cast[ptr WlProxy](wl_data_device), WL_DATA_DEVICE_SET_SELECTION, nil, get_version(cast[ptr WlProxy](wl_data_device)), 0, source, serial)
 
 proc release*(wl_data_device: ptr WlDataDevice) {.inline, importc: "wl_data_device_release".} =
-  marshal_flags(cast[ptr WlProxy](wl_data_device), WL_DATA_DEVICE_RELEASE, nil, get_version(cast[ptr WlProxy](wl_data_device)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_data_device), WL_DATA_DEVICE_RELEASE, nil, get_version(cast[ptr WlProxy](wl_data_device)), WL_MARSHAL_FLAG_DESTROY)
 
 type WlDataDeviceManagerDndAction* {.pure.} = enum
   NONE = 0,
@@ -555,12 +555,12 @@ proc destroy*(wl_data_device_manager: ptr WlDataDeviceManager) {.inline, importc
 
 proc createDataSource*(wl_data_device_manager: ptr WlDataDeviceManager): ptr WlDataSource {.inline, importc: "wl_data_device_manager_create_data_source".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_data_device_manager), WL_DATA_DEVICE_MANAGER_CREATE_DATA_SOURCE, addr(wl_data_source_interface), get_version(cast[ptr WlProxy](wl_data_device_manager)), 0, nil)
+  id = marshal_flags(cast[ptr WlProxy](wl_data_device_manager), WL_DATA_DEVICE_MANAGER_CREATE_DATA_SOURCE, addr(WlDataSourceInterface), get_version(cast[ptr WlProxy](wl_data_device_manager)), 0, nil)
   return cast[ptr WlDataSource](id)
 
 proc getDataDevice*(wl_data_device_manager: ptr WlDataDeviceManager; seat: ptr WlSeat): ptr WlDataDevice {.inline, importc: "wl_data_device_manager_get_data_device".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_data_device_manager), WL_DATA_DEVICE_MANAGER_GET_DATA_DEVICE, addr(wl_data_device_interface), get_version(cast[ptr WlProxy](wl_data_device_manager)), 0, nil, seat)
+  id = marshal_flags(cast[ptr WlProxy](wl_data_device_manager), WL_DATA_DEVICE_MANAGER_GET_DATA_DEVICE, addr(WlDataDeviceInterface), get_version(cast[ptr WlProxy](wl_data_device_manager)), 0, nil, seat)
   return cast[ptr WlDataDevice](id)
 
 type WlShellError* {.pure.} = enum
@@ -584,7 +584,7 @@ proc destroy*(wl_shell: ptr WlShell) {.inline, importc: "wl_shell_destroy".} =
 
 proc getShellSurface*(wl_shell: ptr WlShell; surface: ptr WlSurface): ptr WlShellSurface {.inline, importc: "wl_shell_get_shell_surface".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_shell), WL_SHELL_GET_SHELL_SURFACE, addr(wl_shell_surface_interface), get_version(cast[ptr WlProxy](wl_shell)), 0, nil, surface)
+  id = marshal_flags(cast[ptr WlProxy](wl_shell), WL_SHELL_GET_SHELL_SURFACE, addr(WlShellSurfaceInterface), get_version(cast[ptr WlProxy](wl_shell)), 0, nil, surface)
   return cast[ptr WlShellSurface](id)
 
 type WlShellSurfaceResize* {.pure.} = enum
@@ -613,12 +613,12 @@ type WlShellSurfaceListener* {.bycopy.} = object
   popup_done*: proc (data: pointer; wl_shell_surface: ptr WlShellSurface)
 
 proc addListener*(wl_shell_surface: ptr WlShellSurface; listener: ptr WlShellSurface_listener; data: pointer): cint {.inline, importc: "wl_shell_surface_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_shell_surface), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_shell_surface), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_SHELL_SURFACE_PONG* = 0
   WL_SHELL_SURFACE_MOVE* = 1
-  WL_SHELL_SURFACE_RESIZE* = 2
+  WL_SHELL_SURFACE_RESIZE_FIXME* = 2
   WL_SHELL_SURFACE_SET_TOPLEVEL* = 3
   WL_SHELL_SURFACE_SET_TRANSIENT* = 4
   WL_SHELL_SURFACE_SET_FULLSCREEN* = 5
@@ -655,34 +655,34 @@ proc destroy*(wl_shell_surface: ptr WlShellSurface) {.inline, importc: "wl_shell
   destroy(cast[ptr WlProxy](wl_shell_surface))
 
 proc pong*(wl_shell_surface: ptr WlShellSurface; serial: uint32) {.inline, importc: "wl_shell_surface_pong".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_PONG, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, serial)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_PONG, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, serial)
 
 proc move*(wl_shell_surface: ptr WlShellSurface; seat: ptr WlSeat; serial: uint32) {.inline, importc: "wl_shell_surface_move".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_MOVE, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, seat, serial)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_MOVE, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, seat, serial)
 
 proc resize*(wl_shell_surface: ptr WlShellSurface; seat: ptr WlSeat; serial: uint32; edges: uint32) {.inline, importc: "wl_shell_surface_resize".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_RESIZE, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, seat, serial, edges)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_RESIZE_FIXME, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, seat, serial, edges)
 
 proc setToplevel*(wl_shell_surface: ptr WlShellSurface) {.inline, importc: "wl_shell_surface_set_toplevel".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_TOPLEVEL, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_TOPLEVEL, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0)
 
 proc setTransient*(wl_shell_surface: ptr WlShellSurface; parent: ptr WlSurface; x, y: int32; flags: uint32) {.inline, importc: "wl_shell_surface_set_transient".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_TRANSIENT, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, parent, x, y, flags)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_TRANSIENT, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, parent, x, y, flags)
 
 proc setFullscreen*(wl_shell_surface: ptr WlShellSurface; `method`: uint32; framerate: uint32; output: ptr WlOutput) {.inline, importc: "wl_shell_surface_set_fullscreen".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_FULLSCREEN, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, `method`, framerate, output)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_FULLSCREEN, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, `method`, framerate, output)
 
 proc setPopup*(wl_shell_surface: ptr WlShellSurface; seat: ptr WlSeat; serial: uint32; parent: ptr WlSurface; x, y: int32; flags: uint32) {.inline, importc: "wl_shell_surface_set_popup".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_POPUP, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, seat, serial, parent, x, y, flags)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_POPUP, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, seat, serial, parent, x, y, flags)
 
 proc setMaximized*(wl_shell_surface: ptr WlShellSurface; output: ptr WlOutput) {.inline, importc: "wl_shell_surface_set_maximized".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_MAXIMIZED, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, output)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_MAXIMIZED, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, output)
 
 proc setTitle*(wl_shell_surface: ptr WlShellSurface; title: cstring) {.inline, importc: "wl_shell_surface_set_title".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_TITLE, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, title)
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_TITLE, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, title)
 
-proc setClass*(wl_shell_surface: ptr WlShellSurface; class_: cstring) {.inline, importc: "wl_shell_surface_set_class".} =
-  marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_CLASS, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, class_)
+proc setClass*(wl_shell_surface: ptr WlShellSurface; class: cstring) {.inline, importc: "wl_shell_surface_set_class".} =
+  discard marshal_flags(cast[ptr WlProxy](wl_shell_surface), WL_SHELL_SURFACE_SET_CLASS, nil, get_version(cast[ptr WlProxy](wl_shell_surface)), 0, class)
 
 type WlSurfaceError* {.pure.} = enum
   INVALID_SCALE = 0,
@@ -695,7 +695,7 @@ type WlSurfaceListener* {.bycopy.} = object
   leave*: proc (data: pointer; wl_surface: ptr WlSurface; output: ptr WlOutput)
 
 proc addListener*(wl_surface: ptr WlSurface; listener: ptr WlSurfaceListener; data: pointer): cint {.inline, importc: "wl_surface_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_surface), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_surface), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_SURFACE_DESTROY* = 0
@@ -735,39 +735,39 @@ proc getVersion*(wl_surface: ptr WlSurface): uint32 {.inline, importc: "wl_surfa
   return get_version(cast[ptr WlProxy](wl_surface))
 
 proc destroy*(wl_surface: ptr WlSurface) {.inline, importc: "wl_surface_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_DESTROY, nil, get_version(cast[ptr WlProxy](wl_surface)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_DESTROY, nil, get_version(cast[ptr WlProxy](wl_surface)), WL_MARSHAL_FLAG_DESTROY)
 
 proc attach*(wl_surface: ptr WlSurface; buffer: ptr WlBuffer; x, y: int32) {.inline, importc: "wl_surface_attach".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_ATTACH, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, buffer, x, y)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_ATTACH, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, buffer, x, y)
 
 proc damage*(wl_surface: ptr WlSurface; x, y: int32; width, height: int32) {.inline, importc: "wl_surface_damage".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_DAMAGE, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, x, y, width, height)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_DAMAGE, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, x, y, width, height)
 
 proc frame*(wl_surface: ptr WlSurface): ptr WlCallback {.inline, importc: "wl_surface_frame".} =
   var callback: ptr WlProxy
-  callback = marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_FRAME, addr(wl_callback_interface), get_version(cast[ptr WlProxy](wl_surface)), 0, nil)
+  callback = marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_FRAME, addr(WlCallbackInterface), get_version(cast[ptr WlProxy](wl_surface)), 0, nil)
   return cast[ptr WlCallback](callback)
 
 proc setOpaqueRegion*(wl_surface: ptr WlSurface; region: ptr WlRegion) {.inline, importc: "wl_surface_set_opaque_region".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_OPAQUE_REGION, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, region)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_OPAQUE_REGION, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, region)
 
 proc setInputRegion*(wl_surface: ptr WlSurface; region: ptr WlRegion) {.inline, importc: "wl_surface_set_input_region".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_INPUT_REGION, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, region)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_INPUT_REGION, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, region)
 
 proc commit*(wl_surface: ptr WlSurface) {.inline, importc: "wl_surface_commit".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_COMMIT, nil, get_version(cast[ptr WlProxy](wl_surface)), 0)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_COMMIT, nil, get_version(cast[ptr WlProxy](wl_surface)), 0)
 
 proc setBufferTransform*(wl_surface: ptr WlSurface; transform: int32) {.inline, importc: "wl_surface_set_buffer_transform".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_BUFFER_TRANSFORM, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, transform)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_BUFFER_TRANSFORM, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, transform)
 
 proc setBufferScale*(wl_surface: ptr WlSurface; scale: int32) {.inline, importc: "wl_surface_set_buffer_scale".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_BUFFER_SCALE, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, scale)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_SET_BUFFER_SCALE, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, scale)
 
 proc damageBuffer*(wl_surface: ptr WlSurface; x, y: int32; width, height: int32) {.inline, importc: "wl_surface_damage_buffer".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_DAMAGE_BUFFER, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, x, y, width, height)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_DAMAGE_BUFFER, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, x, y, width, height)
 
 proc offset*(wl_surface: ptr WlSurface; x, y: int32) {.inline, importc: "wl_surface_offset".} =
-  marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_OFFSET, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, x, y)
+  discard marshal_flags(cast[ptr WlProxy](wl_surface), WL_SURFACE_OFFSET, nil, get_version(cast[ptr WlProxy](wl_surface)), 0, x, y)
 
 type WlSeatCapability* {.pure.} = enum
   POINTER = 1,
@@ -782,7 +782,7 @@ type WlSeatListener* {.bycopy.} = object
   name*: proc (data: pointer; wl_seat: ptr WlSeat; name: cstring)
 
 proc addListener*(wl_seat: ptr WlSeat; listener: ptr WlSeatListener; data: pointer): cint {.inline, importc: "wl_seat_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_seat), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_seat), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_SEAT_GET_POINTER* = 0
@@ -812,21 +812,21 @@ proc destroy*(wl_seat: ptr WlSeat) {.inline, importc: "wl_seat_destroy".} =
 
 proc getPointer*(wl_seat: ptr WlSeat): ptr WlPointer {.inline, importc: "wl_seat_get_pointer".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_GET_POINTER, addr(wl_pointer_interface), get_version(cast[ptr WlProxy](wl_seat)), 0, nil)
+  id = marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_GET_POINTER, addr(WlPointerInterface), get_version(cast[ptr WlProxy](wl_seat)), 0, nil)
   return cast[ptr WlPointer](id)
 
 proc getKeyboard*(wl_seat: ptr WlSeat): ptr WlKeyboard {.inline, importc: "wl_seat_get_keyboard".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_GET_KEYBOARD, addr(wl_keyboard_interface), get_version(cast[ptr WlProxy](wl_seat)), 0, nil)
+  id = marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_GET_KEYBOARD, addr(WlKeyboardInterface), get_version(cast[ptr WlProxy](wl_seat)), 0, nil)
   return cast[ptr WlKeyboard](id)
 
 proc getTouch*(wl_seat: ptr WlSeat): ptr WlTouch {.inline, importc: "wl_seat_get_touch".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_GET_TOUCH, addr(wl_touch_interface), get_version(cast[ptr WlProxy](wl_seat)), 0, nil)
+  id = marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_GET_TOUCH, addr(WlTouchInterface), get_version(cast[ptr WlProxy](wl_seat)), 0, nil)
   return cast[ptr WlTouch](id)
 
 proc release*(wl_seat: ptr WlSeat) {.inline, importc: "wl_seat_release".} =
-  marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_RELEASE, nil, get_version(cast[ptr WlProxy](wl_seat)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_seat), WL_SEAT_RELEASE, nil, get_version(cast[ptr WlProxy](wl_seat)), WL_MARSHAL_FLAG_DESTROY)
 
 type WlPointerError* {.pure.} = enum
   ROLE = 0
@@ -859,7 +859,7 @@ type WlPointerListener* {.bycopy.} = object
   axis_discrete*: proc (data: pointer; wl_pointer: ptr WlPointer; axis: uint32; discrete: int32)
 
 proc addListener*(wl_pointer: ptr WlPointer; listener: ptr WlPointerListener; data: pointer): cint {.inline, importc: "wl_pointer_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_pointer), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_pointer), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_POINTER_SET_CURSOR* = 0
@@ -891,10 +891,10 @@ proc destroy*(wl_pointer: ptr WlPointer) {.inline, importc: "wl_pointer_destroy"
   destroy(cast[ptr WlProxy](wl_pointer))
 
 proc setCursor*(wl_pointer: ptr WlPointer; serial: uint32; surface: ptr WlSurface; hotspot_x, hotspot_y: int32) {.inline, importc: "wl_pointer_set_cursor".} =
-  marshal_flags(cast[ptr WlProxy](wl_pointer), WL_POINTER_SET_CURSOR, nil, get_version(cast[ptr WlProxy](wl_pointer)), 0, serial, surface, hotspot_x, hotspot_y)
+  discard marshal_flags(cast[ptr WlProxy](wl_pointer), WL_POINTER_SET_CURSOR, nil, get_version(cast[ptr WlProxy](wl_pointer)), 0, serial, surface, hotspot_x, hotspot_y)
 
 proc release*(wl_pointer: ptr WlPointer) {.inline, importc: "wl_pointer_release".} =
-  marshal_flags(cast[ptr WlProxy](wl_pointer), WL_POINTER_RELEASE, nil, get_version(cast[ptr WlProxy](wl_pointer)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_pointer), WL_POINTER_RELEASE, nil, get_version(cast[ptr WlProxy](wl_pointer)), WL_MARSHAL_FLAG_DESTROY)
 
 type WlKeyboardKeymapFormat* {.pure.} = enum
   NO_KEYMAP = 0,
@@ -913,7 +913,7 @@ type WlKeyboardListener* {.bycopy.} = object
   repeat_info*: proc (data: pointer; wl_keyboard: ptr WlKeyboard; rate: int32; delay: int32)
 
 proc addListener*(wl_keyboard: ptr WlKeyboard; listener: ptr WlKeyboardListener; data: pointer): cint {.inline, importc: "wl_keyboard_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_keyboard), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_keyboard), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_KEYBOARD_RELEASE* = 0
@@ -938,7 +938,7 @@ proc destroy*(wl_keyboard: ptr WlKeyboard) {.inline, importc: "wl_keyboard_destr
   destroy(cast[ptr WlProxy](wl_keyboard))
 
 proc release*(wl_keyboard: ptr WlKeyboard) {.inline, importc: "wl_keyboard_release".} =
-  marshal_flags(cast[ptr WlProxy](wl_keyboard), WL_KEYBOARD_RELEASE, nil, get_version(cast[ptr WlProxy](wl_keyboard)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_keyboard), WL_KEYBOARD_RELEASE, nil, get_version(cast[ptr WlProxy](wl_keyboard)), WL_MARSHAL_FLAG_DESTROY)
 
 type WlTouchListener* {.bycopy.} = object
   down*: proc (data: pointer; wl_touch: ptr WlTouch; serial: uint32; time: uint32; surface: ptr WlSurface; id: int32; x, y: WlFixed)
@@ -950,7 +950,7 @@ type WlTouchListener* {.bycopy.} = object
   orientation*: proc (data: pointer; wl_touch: ptr WlTouch; id: int32; orientation: WlFixed)
 
 proc addListener*(wl_touch: ptr WlTouch; listener: ptr WlTouchListener; data: pointer): cint {.inline, importc: "wl_touch_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_touch), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_touch), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_TOUCH_RELEASE* = 0
@@ -976,7 +976,7 @@ proc destroy*(wl_touch: ptr WlTouch) {.inline, importc: "wl_touch_destroy".} =
   destroy(cast[ptr WlProxy](wl_touch))
 
 proc release*(wl_touch: ptr WlTouch) {.inline, importc: "wl_touch_release".} =
-  marshal_flags(cast[ptr WlProxy](wl_touch), WL_TOUCH_RELEASE, nil, get_version(cast[ptr WlProxy](wl_touch)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_touch), WL_TOUCH_RELEASE, nil, get_version(cast[ptr WlProxy](wl_touch)), WL_MARSHAL_FLAG_DESTROY)
 
 type WlOutputSubpixel* {.pure.} = enum
   UNKNOWN = 0,
@@ -1009,7 +1009,7 @@ type WlOutputListener* {.bycopy.} = object
   description*: proc (data: pointer; wl_output: ptr WlOutput; description: cstring)
 
 proc addListener*(wl_output: ptr WlOutput; listener: ptr WlOutput_listener; data: pointer): cint {.inline, importc: "wl_output_add_listener".} =
-  return add_listener(cast[ptr WlProxy](wl_output), cast[proc ()](listener), data)
+  return add_listener(cast[ptr WlProxy](wl_output), cast[proc (){.cdecl.}](listener), data)
 
 const
   WL_OUTPUT_RELEASE* = 0
@@ -1034,7 +1034,7 @@ proc destroy*(wl_output: ptr WlOutput) {.inline, importc: "wl_output_destroy".} 
   destroy(cast[ptr WlProxy](wl_output))
 
 proc release*(wl_output: ptr WlOutput) {.inline, importc: "wl_output_release".} =
-  marshal_flags(cast[ptr WlProxy](wl_output), WL_OUTPUT_RELEASE, nil, get_version(cast[ptr WlProxy](wl_output)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_output), WL_OUTPUT_RELEASE, nil, get_version(cast[ptr WlProxy](wl_output)), WL_MARSHAL_FLAG_DESTROY)
 
 const
   WL_REGION_DESTROY* = 0
@@ -1056,13 +1056,13 @@ proc getVersion*(wl_region: ptr WlRegion): uint32 {.inline, importc: "wl_region_
   return get_version(cast[ptr WlProxy](wl_region))
 
 proc destroy*(wl_region: ptr WlRegion) {.inline, importc: "wl_region_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_region), WL_REGION_DESTROY, nil, get_version(cast[ptr WlProxy](wl_region)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_region), WL_REGION_DESTROY, nil, get_version(cast[ptr WlProxy](wl_region)), WL_MARSHAL_FLAG_DESTROY)
 
 proc add*(wl_region: ptr WlRegion; x, y: int32; width, height: int32) {.inline, importc: "wl_region_add".} =
-  marshal_flags(cast[ptr WlProxy](wl_region), WL_REGION_ADD, nil, get_version(cast[ptr WlProxy](wl_region)), 0, x, y, width, height)
+  discard marshal_flags(cast[ptr WlProxy](wl_region), WL_REGION_ADD, nil, get_version(cast[ptr WlProxy](wl_region)), 0, x, y, width, height)
 
 proc subtract*(wl_region: ptr WlRegion; x, y: int32; width, height: int32) {.inline, importc: "wl_region_subtract".} =
-  marshal_flags(cast[ptr WlProxy](wl_region), WL_REGION_SUBTRACT, nil, get_version(cast[ptr WlProxy](wl_region)), 0, x, y, width, height)
+  discard marshal_flags(cast[ptr WlProxy](wl_region), WL_REGION_SUBTRACT, nil, get_version(cast[ptr WlProxy](wl_region)), 0, x, y, width, height)
 
 type WlSubcompositorError* {.pure.} = enum
   BAD_SURFACE = 0
@@ -1083,11 +1083,11 @@ proc getVersion*(wl_subcompositor: ptr WlSubcompositor): uint32 {.inline, import
   return get_version(cast[ptr WlProxy](wl_subcompositor))
 
 proc destroy*(wl_subcompositor: ptr WlSubcompositor) {.inline, importc: "wl_subcompositor_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_subcompositor), WL_SUBCOMPOSITOR_DESTROY, nil, get_version(cast[ptr WlProxy](wl_subcompositor)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_subcompositor), WL_SUBCOMPOSITOR_DESTROY, nil, get_version(cast[ptr WlProxy](wl_subcompositor)), WL_MARSHAL_FLAG_DESTROY)
 
 proc getSubsurface*(wl_subcompositor: ptr WlSubcompositor; surface: ptr WlSurface; parent: ptr WlSurface): ptr WlSubsurface {.inline, importc: "wl_subcompositor_get_subsurface".} =
   var id: ptr WlProxy
-  id = marshal_flags(cast[ptr WlProxy](wl_subcompositor), WL_SUBCOMPOSITOR_GET_SUBSURFACE, addr(wl_subsurface_interface), get_version(cast[ptr WlProxy](wl_subcompositor)), 0, nil, surface, parent)
+  id = marshal_flags(cast[ptr WlProxy](wl_subcompositor), WL_SUBCOMPOSITOR_GET_SUBSURFACE, addr(WlSubsurfaceInterface), get_version(cast[ptr WlProxy](wl_subcompositor)), 0, nil, surface, parent)
   return cast[ptr WlSubsurface](id)
 
 type WlSubsurfaceError* {.pure.} = enum
@@ -1119,21 +1119,21 @@ proc getVersion*(wl_subsurface: ptr WlSubsurface): uint32 {.inline, importc: "wl
   return get_version(cast[ptr WlProxy](wl_subsurface))
 
 proc destroy*(wl_subsurface: ptr WlSubsurface) {.inline, importc: "wl_subsurface_destroy".} =
-  marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_DESTROY, nil, get_version(cast[ptr WlProxy](wl_subsurface)), WL_MARSHAL_FLAG_DESTROY)
+  discard marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_DESTROY, nil, get_version(cast[ptr WlProxy](wl_subsurface)), WL_MARSHAL_FLAG_DESTROY)
 
 proc setPosition*(wl_subsurface: ptr WlSubsurface; x, y: int32) {.inline, importc: "wl_subsurface_set_position".} =
-  marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_SET_POSITION, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0, x, y)
+  discard marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_SET_POSITION, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0, x, y)
 
 proc placeAbove*(wl_subsurface: ptr WlSubsurface; sibling: ptr WlSurface) {.inline, importc: "wl_subsurface_place_above".} =
-  marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_PLACE_ABOVE, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0, sibling)
+  discard marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_PLACE_ABOVE, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0, sibling)
 
 proc placeBelow*(wl_subsurface: ptr WlSubsurface; sibling: ptr WlSurface) {.inline, importc: "wl_subsurface_place_below".} =
-  marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_PLACE_BELOW, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0, sibling)
+  discard marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_PLACE_BELOW, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0, sibling)
 
 proc setSync*(wl_subsurface: ptr WlSubsurface) {.inline, importc: "wl_subsurface_set_sync".} =
-  marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_SET_SYNC, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0)
+  discard marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_SET_SYNC, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0)
 
 proc setDesync*(wl_subsurface: ptr WlSubsurface) {.inline, importc: "wl_subsurface_set_desync".} =
-  marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_SET_DESYNC, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0)
+  discard marshal_flags(cast[ptr WlProxy](wl_subsurface), WL_SUBSURFACE_SET_DESYNC, nil, get_version(cast[ptr WlProxy](wl_subsurface)), 0)
 
 {.pop.}

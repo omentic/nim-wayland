@@ -14,6 +14,18 @@ type
   WlEventLoopSignalFunc* = proc (signal_number: cint; data: pointer): cint
   WlEventLoopIdleFunc* = proc (data: pointer)
 
+# FIXME where on earth are these???
+type
+  WlEventLoop = object
+  WlEventSource = object
+  WlDisplay = object
+  WlClient = object
+  WlGlobal = object
+  WlResource = object
+  WlShmBuffer = object
+  WlShmPool = object
+  WlProtocolLogger = object
+
 proc createWlEventLoop*(): ptr WlEventLoop {.importc: "wl_event_loop_create".}
 proc destroy*(loop: ptr WlEventLoop) {.importc: "wl_event_loop_destroy".}
 proc addFd*(loop: ptr WlEventLoop; fd: cint; mask: uint32; `func`: WlEventLoopFdFunc; data: pointer): ptr WlEventSource {.importc: "wl_event_loop_add_fd".}
@@ -29,6 +41,10 @@ proc addIdle*(loop: ptr WlEventLoop; `func`: WlEventLoopIdleFunc; data: pointer)
 proc getFd*(loop: ptr WlEventLoop): cint {.importc: "wl_event_loop_get_fd".}
 
 type
+  WlListener* {.bycopy.} = object
+    link*: WlList
+    notify*: WlNotifyFunc
+
   WlNotifyFunc* = proc (listener: ptr WlListener; data: pointer)
 
 proc addDestroyListener*(loop: ptr WlEventLoop; listener: ptr WlListener) {.importc: "wl_event_loop_add_destroy_listener".}
@@ -73,46 +89,37 @@ proc wl_client_from_link*(link: ptr WlList): ptr WlClient {.importc: "wl_client_
 
 proc destroy*(client: ptr WlClient) {.importc: "wl_client_destroy".}
 proc flush*(client: ptr WlClient) {.importc: "wl_client_flush".}
+type
+  pid_t = int32
+  uid_t = int32
+  gid_t = int32
 proc getCredentials*(client: ptr WlClient; pid: ptr pid_t; uid: ptr uid_t; gid: ptr gid_t){.importc: "wl_client_get_credentials".}
 proc getFd*(client: ptr WlClient): cint {.importc: "wl_client_get_fd".}
 proc addDestroyListener*(client: ptr WlClient; listener: ptr WlListener) {.importc: "wl_client_add_destroy_listener".}
 proc getDestroyListener*(client: ptr WlClient; notify: WlNotifyFunc): ptr WlListener {.importc: "wl_client_get_destroy_listener".}
 proc get_object*(client: ptr WlClient; id: uint32): ptr WlResource {.importc: "wl_client_get_object".}
 proc postNoMemory*(client: ptr WlClient) {.importc: "wl_client_post_no_memory".}
-proc postImplementationError*(client: ptr WlClient; msg: cstring) {.varargs.} {.importc: "wl_client_post_implementation_error".}
+proc postImplementationError*(client: ptr WlClient; msg: cstring) {.varargs, importc: "wl_client_post_implementation_error".}
 proc addResourceCreatedListener*(client: ptr WlClient; listener: ptr WlListener) {.importc: "wl_client_add_resource_created_listener".}
 type WlClientForEachResourceIteratorFunc* = proc (resource: ptr WlResource; user_data: pointer): WlIteratorResult
 proc forEachResource*(client: ptr WlClient; `iterator`: WlClientForEachResourceIteratorFunc; user_data: pointer) {.importc: "wl_client_for_each_resource".}
 
 type
-  WlListener* {.bycopy.} = object
-    link*: WlList
-    notify*: WlNotifyFunc
-
-type
   WlSignal* {.bycopy.} = object
     listener_list*: WlList
 
-proc init*(signal: ptr WlSignal) {.inline.} {.importc: "wl_signal_init".} =
-  init(addr(signal.listener_list))
-proc add*(signal: ptr WlSignal; listener: ptr WlListener) {.inline.} {.importc: "wl_signal_add".} =
-  insert(signal.listener_list.prev, addr(listener.link))
-proc get*(signal: ptr WlSignal; notify: WlNotifyFunc_t): ptr WlListener {.inline.} {.importc: "wl_signal_get".} =
-  var l: ptr WlListener
-  return nil
-
-proc emit*(signal: ptr WlSignal; data: pointer) {.inline.} = {.importc: "wl_signal_emit".}
-  var
-    l: ptr WlListener
-    next: ptr WlListener
+proc init*(signal: ptr WlSignal) {.importc: "wl_signal_init".}
+proc add*(signal: ptr WlSignal; listener: ptr WlListener) {.importc: "wl_signal_add".}
+proc get*(signal: ptr WlSignal; notify: WlNotifyFunc): ptr WlListener {.importc: "wl_signal_get".}
+proc emit*(signal: ptr WlSignal; data: pointer) {.importc: "wl_signal_emit".}
 
 type WlResourceDestroyFunc* = proc (resource: ptr WlResource)
-proc postEvent*(resource: ptr WlResource; opcode: uint32) {.varargs.} {.importc: "wl_resource_post_event".}
+proc postEvent*(resource: ptr WlResource; opcode: uint32) {.varargs, importc: "wl_resource_post_event".}
 proc postEventArray*(resource: ptr WlResource; opcode: uint32; args: ptr WlArgument) {.importc: "wl_resource_post_event_array".}
-proc queueEvent*(resource: ptr WlResource; opcode: uint32) {.varargs.} {.importc: "wl_resource_queue_event".}
+proc queueEvent*(resource: ptr WlResource; opcode: uint32) {.varargs, importc: "wl_resource_queue_event".}
 proc queueEventArray*(resource: ptr WlResource; opcode: uint32; args: ptr WlArgument) {.importc: "wl_resource_queue_event_array".}
 
-proc postError*(resource: ptr WlResource; code: uint32; msg: cstring) {.varargs.} {.importc: "wl_resource_post_error".}
+proc postError*(resource: ptr WlResource; code: uint32; msg: cstring) {.varargs, importc: "wl_resource_post_error".}
 proc postNoMemory*(resource: ptr WlResource) {.importc: "wl_resource_post_no_memory".}
 proc getDisplay*(client: ptr WlClient): ptr WlDisplay {.importc: "wl_client_get_display".}
 proc createWlResource*(client: ptr WlClient; `interface`: ptr WlInterface; version: cint; id: uint32): ptr WlResource {.importc: "wl_resource_create".}
