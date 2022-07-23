@@ -1,0 +1,5 @@
+version = "1.21.0"
+author = "j-james"
+description = "Nim bindings for libwayland"
+license = "MIT"
+srcDir = "src"
