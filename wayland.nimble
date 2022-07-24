@@ -1,4 +1,4 @@
-version = "1.21.0"
+version = "1.20.0"
 author = "j-james"
 description = "Nim bindings for libwayland"
 license = "MIT"
