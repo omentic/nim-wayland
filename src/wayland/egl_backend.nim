@@ -23,6 +23,8 @@
 ##  Authors:
 ##     Benjamin Franzke <benjaminfranzke@googlemail.com>
 
+{.push dynlib: "libwayland-egl.so" .}
+
 ##  NOTE: This version must be kept in sync with the version field in the
 ##  wayland-egl-backend pkgconfig file generated in meson.build.
 const WL_EGL_WINDOW_VERSION* = 3
@@ -42,3 +44,5 @@ type WlEglWindow* {.bycopy.} = object
   resize_callback*: proc (a1: ptr WlEglWindow; a2: pointer)
   destroy_window_callback*: proc (a1: pointer)
   surface*: ptr WlSurface
+
+{.pop.}

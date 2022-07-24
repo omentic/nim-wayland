@@ -22,6 +22,8 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ##  SOFTWARE.
 
+{.push dynlib: "libwayland-egl.so" .}
+
 const WL_EGL_PLATFORM* = 1
 
 # FIXME: shim
@@ -33,3 +35,5 @@ proc createWlEglWindow*(surface: ptr WlSurface; width: cint; height: cint): ptr 
 proc destroy*(egl_window: ptr WlEglWindow) {.importc: "wl_egl_window_destroy".}
 proc resize*(egl_window: ptr WlEglWindow; width: cint; height: cint; dx: cint; dy: cint) {.importc: "wl_egl_window_resize".}
 proc getAttachedSize*(egl_window: ptr WlEglWindow; width: ptr cint; height: ptr cint) {.importc: "wl_egl_window_get_attached_size".}
+
+{.pop.}

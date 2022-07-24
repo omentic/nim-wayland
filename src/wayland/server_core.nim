@@ -1,4 +1,4 @@
-{.push dynlib: "libwlroots.so" .}
+{.push dynlib: "libwayland-server.so" .}
 
 import util, version
 

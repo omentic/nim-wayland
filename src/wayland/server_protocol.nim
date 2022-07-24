@@ -1,34 +1,34 @@
-{.push dynlib: "libwlroots.so" .}
+{.push dynlib: "libwayland-server.so" .}
 
 import server_core, util
 
 # FIXME: shim
 type
- WlClient = object
- WlResource = object
- WlBuffer = object
- WlCallback = object
- WlCompositor = object
- WlDataDevice = object
- WlDataDeviceManager = object
- WlDataOffer = object
- WlDataSource = object
- WlDisplay = object
- WlKeyboard = object
- WlOutput = object
- WlPointer = object
- WlRegion = object
- WlRegistry = object
- WlSeat = object
- WlShell = object
- WlShellSurface = object
- WlShm = object
- WlShmPool = object
- WlSubcompositor = object
- WlSubsurface = object
- WlSurface = object
- WlTouch = object
- WlInterface = object
+  WlClient = object
+  WlResource = object
+  WlBuffer = object
+  WlCallback = object
+  WlCompositor = object
+  WlDataDevice = object
+  WlDataDeviceManager = object
+  WlDataOffer = object
+  WlDataSource = object
+  WlDisplay = object
+  WlKeyboard = object
+  WlOutput = object
+  WlPointer = object
+  WlRegion = object
+  WlRegistry = object
+  WlSeat = object
+  WlShell = object
+  WlShellSurface = object
+  WlShm = object
+  WlShmPool = object
+  WlSubcompositor = object
+  WlSubsurface = object
+  WlSurface = object
+  WlTouch = object
+  WlInterface = object
 
 type WlDisplayError* {.pure.} = enum
   INVALID_OBJECT = 0,

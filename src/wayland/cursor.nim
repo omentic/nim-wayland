@@ -21,6 +21,8 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ##  SOFTWARE.
 
+{.push dynlib: "libwayland-cursor.so" .}
+
 # FIXME: shim
 type
   WlCursorTheme = object
@@ -51,3 +53,5 @@ proc getCursor*(theme: ptr WlCursorTheme; name: cstring): ptr WlCursor {.importc
 proc getBuffer*(image: ptr WlCursorImage): ptr WlBuffer {.importc: "wl_cursor_image_get_buffer".}
 proc frame*(cursor: ptr WlCursor; time: uint32): cint {.importc: "wl_cursor_frame".}
 proc frameAndDuration*(cursor: ptr WlCursor; time: uint32; duration: ptr uint32): cint {.importc: "wl_cursor_frame_and_duration".}
+
+{.pop.}

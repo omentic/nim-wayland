@@ -21,6 +21,8 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ##  SOFTWARE.
 
+{.push dynlib: "libwayland-client.so" .}
+
 import util, version
 
 ##  \class wl_proxy
@@ -162,3 +164,5 @@ proc cancelRead*(display: ptr WlDisplay) {.importc: "wl_display_cancel_read".}
 proc readEvents*(display: ptr WlDisplay): cint {.importc: "wl_display_read_events".}
 
 proc setHandlerClient*(handler: WlLogFunc) {.importc: "wl_log_set_handler_client".}
+
+{.pop.}
