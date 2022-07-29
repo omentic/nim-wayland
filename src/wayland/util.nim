@@ -39,10 +39,31 @@ proc copy*(array: ptr WlArray; source: ptr WlArray): cint {.importc: "wl_array_c
 
 type WlFixed* = int32
 
-proc toDouble*(f: WlFixed): cdouble {.importc: "wl_fixed_to_double".}
-proc getWlFixed*(d: cdouble): WlFixed {.importc: "wl_fixed_from_double".}
-proc toInt*(f: WlFixed): cint {.importc: "wl_fixed_to_int".}
-proc getWlFixed*(i: cint): WlFixed {.importc: "wl_fixed_from_int".}
+proc toDouble*(f: WlFixed): cdouble {.inline.} =
+  type
+    INNER_C_UNION_wayland {.bycopy, union.} = object
+      d: cdouble
+      i: int64
+
+  var u: INNER_C_UNION_wayland
+  u.i = ((1023'i64 + 44'i64) shl 52) + (1'i64 shl 51) + f
+  return u.d - (3'i64 shl 43)
+
+proc getWlFixed*(d: cdouble): WlFixed {.inline.} =
+  type
+    INNER_C_UNION_wayland {.bycopy, union.} = object
+      d: cdouble
+      i: int64
+
+  var u: INNER_C_UNION_wayland
+  u.d = d + (3'i64 shl (51 - 8))
+  return cast[WlFixed](u.i)
+
+proc toInt*(f: WlFixed): cint {.inline.} =
+  return f div 256
+
+proc getWlFixed*(i: cint): WlFixed {.inline.} =
+  return i * 256
 
 type
   WlArgument* {.bycopy, union.} = object

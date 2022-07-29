@@ -108,10 +108,17 @@ type
   WlSignal* {.bycopy.} = object
     listener_list*: WlList
 
-proc init*(signal: ptr WlSignal) {.importc: "wl_signal_init".}
-proc add*(signal: ptr WlSignal; listener: ptr WlListener) {.importc: "wl_signal_add".}
-proc get*(signal: ptr WlSignal; notify: WlNotifyFunc): ptr WlListener {.importc: "wl_signal_get".}
-proc emit*(signal: ptr WlSignal; data: pointer) {.importc: "wl_signal_emit".}
+proc init*(signal: ptr WlSignal) {.inline.} =
+  init(addr(signal.listener_list))
+proc add*(signal: ptr WlSignal; listener: ptr WlListener) {.inline.} =
+  insert(signal.listener_list.prev, addr(listener.link))
+proc get*(signal: ptr WlSignal; notify: WlNotifyFunc): ptr WlListener {.inline.} =
+  var l: ptr WlListener
+  return nil
+proc emit*(signal: ptr WlSignal; data: pointer) {.inline.} =
+  var
+    l: ptr WlListener
+    next: ptr WlListener
 
 type WlResourceDestroyFunc* = proc (resource: ptr WlResource)
 proc postEvent*(resource: ptr WlResource; opcode: uint32) {.varargs, importc: "wl_resource_post_event".}
