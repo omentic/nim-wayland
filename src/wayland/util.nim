@@ -1,6 +1,6 @@
 {.push dynlib: "libwayland-client.so" .}
 
-type WlObject = object
+type WlObject = object # fixme?
 
 type
   WlMessage* {.bycopy.} = object
@@ -47,7 +47,7 @@ proc toDouble*(f: WlFixed): cdouble {.inline.} =
 
   var u: INNER_C_UNION_wayland
   u.i = ((1023'i64 + 44'i64) shl 52) + (1'i64 shl 51) + f
-  return u.d - (3'i64 shl 43)
+  return u.d - (3'i64 shl 43).cdouble
 
 proc getWlFixed*(d: cdouble): WlFixed {.inline.} =
   type
@@ -56,7 +56,7 @@ proc getWlFixed*(d: cdouble): WlFixed {.inline.} =
       i: int64
 
   var u: INNER_C_UNION_wayland
-  u.d = d + (3'i64 shl (51 - 8))
+  u.d = d + (3'i64 shl (51 - 8)).cdouble
   return cast[WlFixed](u.i)
 
 proc toInt*(f: WlFixed): cint {.inline.} =

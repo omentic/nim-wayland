@@ -16,15 +16,15 @@ type
 
 # FIXME where on earth are these???
 type
-  WlEventLoop = object
-  WlEventSource = object
-  WlDisplay = object
-  WlClient = object
-  WlGlobal = object
-  WlResource = object
-  WlShmBuffer = object
-  WlShmPool = object
-  WlProtocolLogger = object
+  WlEventLoop* = object
+  WlEventSource* = object
+  WlDisplay* = object
+  WlClient* = object
+  WlGlobal* = object
+  WlResource* = object
+  WlShmBuffer* = object
+  WlShmPool* = object
+  WlProtocolLogger* = object
 
 proc createWlEventLoop*(): ptr WlEventLoop {.importc: "wl_event_loop_create".}
 proc destroy*(loop: ptr WlEventLoop) {.importc: "wl_event_loop_destroy".}
