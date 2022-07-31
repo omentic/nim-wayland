@@ -27,6 +27,9 @@ proc length*(list: ptr WlList): cint {.importc: "wl_list_length".}
 proc empty*(list: ptr WlList): cint {.importc: "wl_list_empty".}
 proc insertList*(list: ptr WlList; other: ptr WlList) {.importc: "wl_list_insert_list".}
 
+template containerOf*(data: pointer, sample: typedesc, member: untyped): auto =
+  cast[ptr sample](cast[int](data) - offsetof(sample, member))
+
 type WlArray* {.bycopy.} = object
   size*: csize_t
   alloc*: csize_t
