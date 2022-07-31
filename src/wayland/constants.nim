@@ -1,33 +1,5 @@
 # Overlapping constants and enums from client_protocol and server_protocol
 
-# FIXME: shim
-type
-  WlCallback* = object
-  WlRegistry* = object
-  WlCompositor* = object
-  WlSurface* = object
-  WlRegion* = object
-  WlShmPool* = object
-  WlBuffer* = object
-  WlShm* = object
-  WlDataOffer* = object
-  WlDataSource* = object
-  WlDataDevice* = object
-  WlDataDeviceManager* = object
-  WlSeat* = object
-  WlShell* = object
-  WlShellSurface* = object
-  WlOutput* = object
-  WlPointer* = object
-  WlKeyboard* = object
-  WlTouch* = object
-  WlSubcompositor* = object
-  WlSubsurface* = object
-  WlClient = object
-  WlResource = object
-  # WlDisplay* = object
-  # WlInterface* = object
-
 type WlDisplayError* {.pure.} = enum
   INVALID_OBJECT = 0,
   INVALID_METHOD = 1,

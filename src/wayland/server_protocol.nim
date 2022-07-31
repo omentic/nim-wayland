@@ -1,6 +1,6 @@
 {.push dynlib: "libwayland-server.so" .}
 
-import server_core, util, constants
+import server_core, util, types, constants
 
 type WlDisplayInterface* {.bycopy.} = object
   sync*: proc (client: ptr WlClient; resource: ptr WlResource; callback: uint32)

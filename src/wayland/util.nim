@@ -1,6 +1,6 @@
 {.push dynlib: "libwayland-client.so" .}
 
-type WlObject = object # fixme?
+import types
 
 type
   WlMessage* {.bycopy.} = object

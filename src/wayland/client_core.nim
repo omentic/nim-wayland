@@ -23,7 +23,7 @@
 
 {.push dynlib: "libwayland-client.so" .}
 
-import util, version
+import util, version, types
 
 ##  \class wl_proxy
 ##
@@ -95,7 +95,7 @@ type WlProxy* = object # FIXME
 ##  might be events queued on the default queue. Those events should be
 ##  dispatched with \ref wl_display_dispatch_pending() or \ref
 ##  wl_display_dispatch_queue_pending() before flushing and blocking.
-type WlDisplay* = object # FIXME
+# type WlDisplay* = object # FIXME
 
 ##  \class wl_event_queue
 ##
@@ -103,7 +103,7 @@ type WlDisplay* = object # FIXME
 ##
 ##  Event queues allows the events on a display to be handled in a thread-safe
 ##  manner. See \ref wl_display for details.
-type WlEventQueue* = object # FIXME
+# type WlEventQueue* = object # FIXME
 
 
 ##  Destroy proxy after marshalling

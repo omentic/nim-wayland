@@ -1,6 +1,6 @@
 {.push dynlib: "libwayland-server.so" .}
 
-import util, version
+import util, version, types
 
 const
   WL_EVENT_READABLE* = 0x01
@@ -13,18 +13,6 @@ type
   WlEventLoopTimerFunc* = proc (data: pointer): cint
   WlEventLoopSignalFunc* = proc (signal_number: cint; data: pointer): cint
   WlEventLoopIdleFunc* = proc (data: pointer)
-
-# FIXME where on earth are these???
-type
-  WlEventLoop* = object
-  WlEventSource* = object
-  WlDisplay* = object
-  WlClient* = object
-  WlGlobal* = object
-  WlResource* = object
-  WlShmBuffer* = object
-  WlShmPool* = object
-  WlProtocolLogger* = object
 
 proc createWlEventLoop*(): ptr WlEventLoop {.importc: "wl_event_loop_create".}
 proc destroy*(loop: ptr WlEventLoop) {.importc: "wl_event_loop_destroy".}

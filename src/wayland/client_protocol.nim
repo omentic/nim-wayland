@@ -1,6 +1,6 @@
 {.push dynlib: "libwayland-client.so" .}
 
-import client_core, util, constants
+import client_core, util, types, constants
 
 var
   WlDisplayInterface_global*: WlInterface
